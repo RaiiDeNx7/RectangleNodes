@@ -1,49 +1,48 @@
 package org.sample.mavensample;
+import java.util.List;
+import java.util.ArrayList;
 
-public class LeafNode extends Node {
-    private Object data;
+class LeafNode extends Node {
+    private List<Rectangle> rectangles;
 
-    public LeafNode(Object data) {
-        this.data = data;
+    public LeafNode() {
+        this.rectangles = new ArrayList<>();
     }
 
     @Override
-    public void insert(Object data) {
-        // LeafNodes should not have children, so we handle insertion directly here
-        System.out.println("Inserting into LeafNode");
-        this.data = data;  // Simple insert logic for leaf
+    public void insert(Rectangle data) {
+        // Inserting data directly into the leaf node
+        rectangles.add(data);
     }
 
     @Override
-    public void delete(Object data) {
-        // Check if the data matches this LeafNode's data, if so, delete it (nullify)
-        if (this.data.equals(data)) {
-            System.out.println("Deleting data from LeafNode");
-            this.data = null;  // Remove data by setting it to null
+    public void delete(Rectangle data) {
+        rectangles.remove(data);
+    }
+
+    @Override
+    public void update(Rectangle oldData, Rectangle newData) {
+        if (rectangles.contains(oldData)) {
+            rectangles.remove(oldData);
+            rectangles.add(newData);
         }
     }
 
     @Override
-    public void update(Object oldData, Object newData) {
-        // If old data matches, update with new data
-        if (this.data.equals(oldData)) {
-            System.out.println("Updating data in LeafNode");
-            this.data = newData;
+    public void dump(String indent) {
+        System.out.println(indent + "LeafNode with " + rectangles.size() + " rectangles:");
+        for (Rectangle rect : rectangles) {
+            System.out.println(indent + "    " + rect);
         }
     }
 
     @Override
-    public void dump() {
-        System.out.println("LeafNode data: " + data);
-    }
-
-    @Override
-    public Object find(Object data) {
-        // Check if the current node contains the data
-        if (this.data != null && this.data.equals(data)) {
-            System.out.println("Data found in LeafNode");
-            return data;
+    public Rectangle find(double x, double y) {
+        for (Rectangle rect : rectangles) {
+            if (rect.x == x && rect.y == y) {
+                return rect;
+            }
         }
-        return null;  // Data not found
+        return null;
     }
 }
