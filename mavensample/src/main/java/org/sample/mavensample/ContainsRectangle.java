@@ -10,14 +10,8 @@ class Rectangle {
         this.height = height;
     }
 
-    public boolean contains(Rectangle other) {
-        return other.x >= this.x && other.x + other.width <= this.x + this.width &&
-               other.y >= this.y && other.y + other.height <= this.y + this.height;
-    }
-
-    public boolean intersects(Rectangle other) {
-        return !(other.x > this.x + this.width || other.x + other.width < this.x ||
-                other.y > this.y + this.height || other.y + other.height < this.y);
+    public boolean contains(double px, double py) {
+        return px >= x && px <= x + width && py >= y && py <= y + height;
     }
 
     @Override
