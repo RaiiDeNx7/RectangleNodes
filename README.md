@@ -14,6 +14,9 @@ Implement five operations on your data structure:
 • Update Rectangle – change the length and width of a rectangle.
 
 # System Requirements
+Java (java version "23" recommended)
+Maven (Apache Maven 3.9.9 recommended)
+
 
 # How to run 
 1) cd to mavensample
