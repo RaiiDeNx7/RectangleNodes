@@ -1,6 +1,24 @@
 package org.sample.mavensample;
 
+/*
+ * Description:
+ * 		The Rectangle class represents a region in 2D space (defined by bottom-left corner). It also checks if a given point is inside the rectangle and return details about the rectangle.
+ * 
+ * Arguments:
+ * 		double x - the x-coordinate of the bottom-left corner of rectangle
+ * 		double y - the y-coordinate of the bottom-left corner of rectangle
+ * 		double width - The width of rectangle, extending right from x
+ * 		double height - the height of rectangle, extending up from y
+ * 
+ * Exceptions: None
+ * 
+ * Return Value:
+ * 		contains(double px, double py) returns a boolean indicating whether the specified point is inside the rectangle
+ * 		toString() returns a string that represents the rectangle's details.
+ *
+*/
 class Rectangle {
+	
     double x, y, width, height;
 
     public Rectangle(double x, double y, double width, double height) {
