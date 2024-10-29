@@ -14,7 +14,7 @@ class LeafNode extends Node {
     @Override
     public void insert(Rectangle r) {
         if (!boundary.contains(r.x, r.y)) return;
-        
+
         // Insert rectangle if not already present
         if (!rectangles.contains(r)) {
             rectangles.add(r);

@@ -7,6 +7,14 @@ import java.io.IOException;
 public class Main {
     Node root;
 
+    /**
+     * Default Main Constructor
+     * 
+     * @param x The x-coordinate of the bottom-left corner
+     * @param y The y-coordinate of the bottom-left corner
+     * @param width The width of the rectangle
+     * @param height The height of the rectangle
+     */
     public Main(double x, double y, double width, double height) {
         root = new LeafNode(x, y, width, height);
     }
@@ -28,11 +36,14 @@ public class Main {
         root.delete(x, y);
     }
 
+    // Updated method with six parameters
     public void update(double x, double y, double newX, double newY, double newWidth, double newHeight) {
         Rectangle r = root.find(x, y);
         if (r != null) {
-            delete(x, y);
-            insert(newX, newY, newWidth, newHeight);
+            delete(x, y); // Remove the old rectangle
+            insert(newX, newY, newWidth, newHeight); // Insert the updated rectangle
+        } else {
+            System.out.println("Rectangle not found at (" + x + ", " + y + ")");
         }
     }
 
@@ -56,12 +67,12 @@ public class Main {
             while ((line = br.readLine()) != null) {
                 // Trim whitespace and remove trailing semicolons or unwanted characters
                 line = line.trim().replaceAll(";$", "");
-                
+
                 if (line.isEmpty()) continue; // Skip empty lines
-                
+
                 String[] parts = line.split("\\s+");  // Split by whitespace
                 String command = parts[0].toLowerCase();  // Normalize to lowercase
-                
+
                 try {
                     switch (command) {
                         case "insert":
@@ -86,6 +97,7 @@ public class Main {
                             }
                             break;
 
+                        // Updated update command to handle six arguments
                         case "update":
                             if (parts.length == 7) {
                                 double x = Double.parseDouble(parts[1]);

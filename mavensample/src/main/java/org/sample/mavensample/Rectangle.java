@@ -20,6 +20,15 @@ package org.sample.mavensample;
 class Rectangle {
 	
     double x, y, width, height;
+    
+    /**
+     * Default Rectangle Constructor
+     * 
+     * @param x The x-coordinate of the bottom-left corner
+     * @param y The y-coordinate of the bottom-left corner
+     * @param width The width of the rectangle
+     * @param height The height of the rectangle
+     */
 
     public Rectangle(double x, double y, double width, double height) {
         this.x = x;
