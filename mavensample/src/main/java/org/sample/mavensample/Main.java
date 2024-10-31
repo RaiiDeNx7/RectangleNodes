@@ -18,6 +18,7 @@ public class Main {
     public Main(double x, double y, double width, double height) {
         root = new LeafNode(x, y, width, height);
     }
+    
 
     public void insert(double x, double y, double width, double height) {
         Rectangle r = new Rectangle(x, y, width, height);

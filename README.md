@@ -36,9 +36,12 @@ or use the command file given
 
 
 # How to run tests
+1) cd to mavensample
+```cd /path/to/RectangleNodes/mavensample ```
+``` cd /Users/Break/OneDrive - Virginia State University/Classes/Fall24/Programming Languages CSCI 485/RectangleNodes/mavensample ```
 
-
-
+2) compile code and tests 
+``` mvn compile ```
 
 # Expected Errors Detection
 
