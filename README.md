@@ -40,8 +40,8 @@ or use the command file given
 ```cd /path/to/RectangleNodes/mavensample ```
 ``` cd /Users/Break/OneDrive - Virginia State University/Classes/Fall24/Programming Languages CSCI 485/RectangleNodes/mavensample ```
 
-2) compile code and tests 
-``` mvn compile ```
+2) Run test command
+``` mvn clean test ```
 
 # Expected Errors Detection
 
