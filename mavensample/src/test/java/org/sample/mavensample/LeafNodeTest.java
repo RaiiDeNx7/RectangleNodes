@@ -1,128 +1,169 @@
 package org.sample.mavensample;
 
 import junit.framework.TestCase;
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayOutputStream;  
 import java.io.PrintStream;
 
 public class LeafNodeTest extends TestCase {
 
     private LeafNode leafNode;
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private final PrintStream originalOut = System.out;
 
-    protected void setUp() {
-        // Initialize a LeafNode with a boundary of (0, 0) with width and height of 100
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        // Create a LeafNode with boundary defined by a rectangle at (0, 0) with width and height of 100
         leafNode = new LeafNode(0, 0, 100, 100);
-        System.setOut(new PrintStream(outContent));
     }
 
-    protected void tearDown() {
-        System.setOut(originalOut);
+    public void testInsert() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        // Check if the rectangle has been added
+        assertEquals("Should contain one rectangle", 1, leafNode.rectangles.size());
+        assertEquals("First rectangle should be (10, 10)", rect1, leafNode.rectangles.get(0));
     }
 
-    public void testInsertRectangleWithinBoundary() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        assertNotNull("Rectangle should be inserted into LeafNode", leafNode.find(15, 15));
+    public void testInsertOutsideBoundary() {
+        Rectangle rect2 = new Rectangle(150, 150, 5, 5); // Outside the boundary
+        leafNode.insert(rect2);
+        
+        // Check that it has not been added
+        assertEquals("Should still contain no rectangles", 0, leafNode.rectangles.size());
     }
 
-    public void testInsertRectangleOutsideBoundary() {
-        Rectangle rect = new Rectangle(150, 150, 20, 20);
-        leafNode.insert(rect);
-        assertNull("Should not find rectangle outside the LeafNode boundary", leafNode.find(155, 155));
+    public void testDelete() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        leafNode.delete(10, 10); // Should remove rect1
+        
+        // Check if the rectangle has been removed
+        assertEquals("Should contain no rectangles", 0, leafNode.rectangles.size());
     }
 
-    public void testInsertDuplicateRectangle() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        leafNode.insert(rect); // Try inserting the same rectangle again
-        assertEquals("Should contain only one instance of the rectangle", 1, leafNode.rectangles.size());
+    public void testDeleteNonExistent() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        leafNode.delete(20, 20); // Attempting to delete a rectangle that does not exist
+        
+        // Check that the original rectangle still exists
+        assertEquals("Should still contain one rectangle", 1, leafNode.rectangles.size());
     }
 
-    public void testFindExistingRectangle() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        Rectangle found = leafNode.find(15, 15);
-        assertNotNull("Should find the rectangle in LeafNode", found);
-        assertEquals("Found rectangle should match the inserted rectangle", rect, found);
+    public void testDeleteMultipleRectangles() {
+        // Insert multiple rectangles
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        Rectangle rect2 = new Rectangle(20, 20, 5, 5);
+        Rectangle rect3 = new Rectangle(30, 30, 5, 5);
+        leafNode.insert(rect1);
+        leafNode.insert(rect2);
+        leafNode.insert(rect3);
+        
+        // Delete one rectangle
+        leafNode.delete(20, 20);
+        
+        // Check the size after deletion
+        assertEquals("Should contain two rectangles", 2, leafNode.rectangles.size());
+        // Check that the deleted rectangle is not present
+        assertNull("Should not find the deleted rectangle", leafNode.find(20, 20));
     }
 
-    public void testFindNonExistingRectangle() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        Rectangle found = leafNode.find(50, 50); // Outside the inserted rectangle
-        assertNull("Should not find any rectangle at (50, 50)", found);
+    public void testDeleteEdgeRectangle() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        // Delete the rectangle at the edge
+        leafNode.delete(10, 10);
+        
+        // Verify the rectangle was deleted
+        assertEquals("Should contain no rectangles", 0, leafNode.rectangles.size());
     }
 
-    public void testDeleteRectangle() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        leafNode.delete(15, 15); // Delete by center point
-        assertNull("Should not find rectangle after deletion", leafNode.find(15, 15));
+    public void testFind() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        // Try to find the rectangle
+        Rectangle found = leafNode.find(10, 10);
+        assertNotNull("Should find the rectangle", found);
+        assertEquals("Found rectangle should match", rect1, found);
     }
 
-    public void testDeleteNonExistingRectangle() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        leafNode.delete(50, 50); // Attempt to delete a non-existing rectangle
-        assertNotNull("Should still find the existing rectangle after non-existing delete", leafNode.find(15, 15));
+    public void testFindNotFound() {
+        // Attempt to find a rectangle that doesn't exist
+        Rectangle found = leafNode.find(20, 20);
+        assertNull("Should not find the rectangle", found);
     }
 
-    public void testPrintLeafNode() {
-        Rectangle rect = new Rectangle(10, 10, 20, 20);
-        leafNode.insert(rect);
-        leafNode.print(0);
-        String output = outContent.toString();
-        assertTrue("Print output should contain the LeafNode boundary",
-            output.contains("Leaf Node - Rectangle at (0.00, 0.00): 100.00x100.00"));
-        assertTrue("Print output should contain the inserted rectangle",
-            output.contains("    Rectangle at (10.00, 10.00): 20.00x20.00"));
-    }
-
-    public void testPrintEmptyLeafNode() {
-        leafNode.print(0);
-        String output = outContent.toString();
-        assertTrue("Print output should indicate empty LeafNode",
-            output.contains("Leaf Node - Rectangle at (0.00, 0.00): 100.00x100.00"));
-        assertFalse("Print output should not contain any rectangles", output.contains("Rectangle"));
+    public void testFindAfterDeletion() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        // Delete the rectangle
+        leafNode.delete(10, 10);
+        
+        // Try to find the deleted rectangle
+        Rectangle found = leafNode.find(10, 10);
+        assertNull("Should not find the deleted rectangle", found);
     }
 
     public void testInsertMultipleRectangles() {
-        // Insert multiple rectangles
+        // Insert rectangles to the maximum capacity of the LeafNode
         for (int i = 0; i < 5; i++) {
             leafNode.insert(new Rectangle(i * 10, i * 10, 5, 5));
         }
-        assertEquals("Should have 5 rectangles in the LeafNode", 5, leafNode.rectangles.size());
+        
+        // Check if the number of rectangles is correct
+        assertEquals("Should contain five rectangles", 5, leafNode.rectangles.size());
     }
 
-    public void testDeleteAllRectangles() {
-        // Insert multiple rectangles and delete them all
+    public void testInsertBeyondCapacity() {
+        // Fill the LeafNode to its capacity
         for (int i = 0; i < 5; i++) {
             leafNode.insert(new Rectangle(i * 10, i * 10, 5, 5));
         }
-        for (int i = 0; i < 5; i++) {
-            leafNode.delete(i * 10 + 2.5, i * 10 + 2.5); // Delete by center point
-        }
-        assertTrue("LeafNode should be empty after deleting all rectangles", leafNode.rectangles.isEmpty());
+        
+        // Attempt to insert a sixth rectangle
+        Rectangle rect6 = new Rectangle(50, 50, 5, 5);
+        leafNode.insert(rect6);
+        
+        // Check that the sixth rectangle was not added
+        assertEquals("Should still contain five rectangles", 5, leafNode.rectangles.size());
     }
 
-    public void testInsertAndDeleteRectangleOnBoundary() {
-        Rectangle rect = new Rectangle(0, 0, 50, 50);
-        leafNode.insert(rect);
-        assertNotNull("Should find rectangle inserted at the boundary", leafNode.find(25, 25));
-        leafNode.delete(25, 25); // Delete the rectangle
-        assertNull("Should not find rectangle after deletion", leafNode.find(25, 25));
+    public void testPrint() {
+        Rectangle rect1 = new Rectangle(10, 10, 5, 5);
+        leafNode.insert(rect1);
+        
+        // Capture output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        
+        leafNode.print(0);
+        
+        // Reset System.out
+        System.setOut(originalOut);
+        
+        String output = outputStream.toString();
+        assertTrue("Output should contain Leaf Node", output.contains("Leaf Node"));
+        assertTrue("Output should contain rectangle info", output.contains("Rectangle at (10.00, 10.00): 5.00x5.00"));
     }
 
     public void testBoundaryConditions() {
-        // Test inserting rectangles that lie on the boundary of the node
-        Rectangle rect1 = new Rectangle(0, 0, 10, 10); // On the boundary
-        Rectangle rect2 = new Rectangle(100, 100, 10, 10); // Outside the boundary
-
+        // Check inserting at the edges of the boundary
+        Rectangle rect1 = new Rectangle(0, 0, 5, 5); // At the corner
         leafNode.insert(rect1);
-        assertNotNull("Should find rectangle at (5, 5)", leafNode.find(5, 5));
-        
-        leafNode.insert(rect2);
-        assertNull("Should not find rectangle at (105, 105)", leafNode.find(105, 105));
+        assertEquals("Should contain one rectangle", 1, leafNode.rectangles.size());
+
+        Rectangle rect2 = new Rectangle(95, 95, 10, 10); // Just touching the boundary
+        leafNode.insert(rect2); 
+        assertEquals("Should still contain one rectangle", 1, leafNode.rectangles.size()); // Should not be added
+
+        Rectangle rect3 = new Rectangle(100, 100, 5, 5); // Outside boundary
+        leafNode.insert(rect3);
+        assertEquals("Should still contain one rectangle", 1, leafNode.rectangles.size()); // Should not be added
     }
 }

@@ -4,45 +4,40 @@ package org.sample.mavensample;
  * Description: The Rectangle class represents a region in 2D space (defined by bottom-left corner). It also checks if a given point is inside the rectangle and return details about the rectangle.
 */
 class Rectangle {
-	
-    double x, y, width, height;
-    
+    Point point;
+    float length, width;
+   
     /**
-     * Default Rectangle Constructor
-     * 
-     * @param x (double): The x-coordinate of the bottom-left corner
-     * @param y (double): The y-coordinate of the bottom-left corner
-     * @param width (double): The width of the rectangle
-     * @param height (double): The height of the rectangle
+     * Description:  Initializes a new instance of the Rectangle class with specified coordinates and dimensions.
+     * @param x (float): The x-coordinate of the bottom-left corner of the rectangle.
+     * @param y (float): The y-coordinate of the bottom-left corner of the rectangle.
+     * @param length (float): The horizontal dimension (length) of the rectangle.
+     * @param width (float): The vertical dimension (width) of the rectangle.
      */
-    public Rectangle(double x, double y, double width, double height) {
-        this.x = x;
-        this.y = y;
+    Rectangle(float x, float y, float length, float width) {
+        this.point = new Point(x, y);
+        this.length = length;
         this.width = width;
-        this.height = height;
-    }
-    
-    /**
-     * Description: Checks if a given point (px,py) lies within the rectangle’s boundaries. 
-     * A point is considered within the rectangle if it’s greater than or equal to the rectangle’s left and bottom edges and 
-     * less than or equal to its right and top edges.
-     * 
-     * @param px (double): The x-coordinate of the point to check.
-     * @param py (double): The y-coordinate of the point to check.
-     * 
-     * @return (boolean): Returns true if the point is inside or on the boundary of the rectangle, and false otherwise.
-     */
-    public boolean contains(double px, double py) {
-        return px >= x && px <= x + width && py >= y && py <= y + height;
     }
 
     /**
-     * Description: Returns a string representation of the rectangle, detailing its position and size with two decimal places for each value.
+     * Description:  Checks if the specified point (x, y) lies within the boundaries of the rectangle.
+     * @param x (float): The x-coordinate of the point to check.
+     * @param y (float): The y-coordinate of the point to check.
      * 
-     * @return (boolean): Returns true if the point is inside or on the boundary of the rectangle, and false otherwise.
+     * @return (boolean): Returns true if the point (x, y) is inside the rectangle; otherwise, returns false.
+     */
+    public boolean contains(float x, float y) {
+        return x >= point.x && x <= point.x + length && y >= point.y && y <= point.y + width;
+    }
+
+    /**
+     * Description:  Returns a string representation of the rectangle, including its location and dimensions.
+     * 
+     * @String: A formatted string that describes the rectangle's bottom-left corner and its dimensions, e.g., "Rectangle at (x, y): length x width"
      */
     @Override
     public String toString() {
-        return String.format("Rectangle at (%.2f, %.2f): %.2fx%.2f", x, y, width, height);
+        return String.format("Rectangle at (%.2f, %.2f): %.2fx%.2f", point.x, point.y, length, width);
     }
 }

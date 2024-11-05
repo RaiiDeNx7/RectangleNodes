@@ -1,155 +1,191 @@
 package org.sample.mavensample;
 
 import junit.framework.TestCase;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
 
 public class MainTest extends TestCase {
 
-    private Main quadtree;
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private final PrintStream originalOut = System.out;
+    private ByteArrayOutputStream outputStream;
+    private PrintStream originalOut;
 
-    protected void setUp() {
-        // Initialize Main with a specified boundary
-        quadtree = new Main(-50, -50, 100, 100);
-        System.setOut(new PrintStream(outContent));
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        // Set up to capture console output
+        outputStream = new ByteArrayOutputStream();
+        originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
     }
 
-    protected void tearDown() {
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        // Restore original output
         System.setOut(originalOut);
     }
 
-    public void testInsertRectangle() {
-        quadtree.insert(10, 10, 20, 20);
-        assertNotNull("Should find inserted rectangle", quadtree.root.find(15, 15));
+    public void testInsertCommand() throws Exception {
+        String command = "insert 10 10 5 5;";
+        String[] args = { "dummy.txt" };
+        
+        // Create a temporary file with the command
+        createTempFile(args[0], command);
+
+        Main.main(args);
+
+        // Verify the inserted rectangle
+        QuadTree quadTree = new QuadTree();
+        Rectangle expectedRectangle = new Rectangle(10, 10, 5, 5);
+        Rectangle found = quadTree.find(10, 10);
+        assertNotNull("Rectangle should be found", found);
+        assertEquals("Inserted rectangle should match", expectedRectangle, found);
     }
 
-    public void testInsertMultipleRectangles() {
-        for (int i = 0; i < 5; i++) {
-            quadtree.insert(i * 10, i * 10, 5, 5);
+    public void testFindCommand() throws Exception {
+        // Prepare a file with commands
+        String commandInsert = "insert 20 20 5 5;";
+        String commandFind = "find 20 20;";
+        String[] args = { "dummy.txt" };
+
+        createTempFile(args[0], commandInsert + "\n" + commandFind);
+
+        Main.main(args);
+
+        // Check output for found rectangle
+        String output = outputStream.toString();
+        assertTrue("Output should contain rectangle info", output.contains("Rectangle at (20.00, 20.00): 5.00x5.00"));
+    }
+
+    public void testDeleteCommand() throws Exception {
+        String commandInsert = "insert 30 30 5 5;";
+        String commandDelete = "delete 30 30;";
+        String[] args = { "dummy.txt" };
+
+        createTempFile(args[0], commandInsert + "\n" + commandDelete);
+
+        Main.main(args);
+
+        // Try to find the deleted rectangle
+        QuadTree quadTree = new QuadTree();
+        Rectangle found = quadTree.find(30, 30);
+        assertNull("Rectangle should be deleted", found);
+    }
+
+    public void testUpdateCommand() throws Exception {
+        String commandInsert = "insert 40 40 5 5;";
+        String commandUpdate = "update 40 40 10 10;";
+        String[] args = { "dummy.txt" };
+
+        createTempFile(args[0], commandInsert + "\n" + commandUpdate);
+
+        Main.main(args);
+
+        // Verify that the rectangle has been updated
+        QuadTree quadTree = new QuadTree();
+        Rectangle found = quadTree.find(40, 40);
+        assertNull("Old rectangle should be deleted", found);
+
+        Rectangle expectedUpdatedRectangle = new Rectangle(40, 40, 10, 10);
+        Rectangle updatedFound = quadTree.find(40, 40);
+        assertNotNull("Updated rectangle should be found", updatedFound);
+        assertEquals("Updated rectangle should match", expectedUpdatedRectangle, updatedFound);
+    }
+
+    public void testInvalidCommand() throws Exception {
+        String commandInvalid = "invalidCommand;";
+        String[] args = { "dummy.txt" };
+
+        createTempFile(args[0], commandInvalid);
+
+        Main.main(args);
+
+        // Check output for invalid command message
+        String output = outputStream.toString();
+        assertTrue("Output should indicate invalid command", output.contains("Invalid command"));
+    }
+
+    public void testFileReadError() throws Exception {
+        String[] args = { "nonexistent.txt" };
+        
+        // Running main with a non-existent file should print an error
+        Main.main(args);
+
+        String output = outputStream.toString();
+        assertTrue("Output should indicate file read error", output.contains("Error reading the file"));
+    }
+
+    public void testDumpCommand() throws Exception {
+        String commandInsert = "insert 50 50 5 5;";
+        String commandDump = "dump;";
+        String[] args = { "dummy.txt" };
+
+        createTempFile(args[0], commandInsert + "\n" + commandDump);
+
+        Main.main(args);
+
+        // Verify that dump outputs the correct structure
+        String output = outputStream.toString();
+        assertTrue("Output should contain dump info", output.contains("Leaf Node"));
+    }
+
+    // Helper method to create a temporary file with the given content
+    private void createTempFile(String fileName, String content) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write(content);
         }
-        assertEquals("Should find 5 rectangles", 5, ((LeafNode) quadtree.root).rectangles.size());
     }
-
-    public void testInsertRectangleExceedingLeafCapacity() {
-        for (int i = 0; i < 6; i++) {
-            quadtree.insert(i * 10, i * 10, 5, 5);
+    public void testFindRectangle() throws Exception {
+        // Setup a temporary file with commands
+        String fileName = "test_commands.txt";
+        try (FileWriter writer = new FileWriter(fileName)) {
+            writer.write("insert 10 10 5 5;\n");
+            writer.write("find 10 10;\n");
+            writer.write("find 20 20;\n");
         }
-        assertTrue("Should have created an InternalNode after exceeding capacity", quadtree.root instanceof InternalNode);
+
+        // Execute the main method
+        String[] args = {fileName};
+        Main.main(args);
+
+        // Check the output
+        String output = outputStream.toString();
+        assertTrue("Output should contain rectangle info", output.contains("Rectangle at (10.00, 10.00): 5.00x5.00"));
+        assertTrue("Output should indicate rectangle not found", output.contains("Rectangle not found"));
     }
 
-    public void testDeleteRectangle() {
-        quadtree.insert(10, 10, 20, 20);
-        quadtree.delete(15, 15); // Delete by center
-        assertNull("Should not find rectangle after deletion", quadtree.root.find(15, 15));
+    public void testParseCommandSuccess() throws Exception {
+        String command = "insert 10 10 5 5;";
+        String[] result = Main.parse_InsertInput(command);
+        assertEquals("Should parse correctly", "insert", result[0]);
+        assertEquals("Should parse correctly", "10", result[1]);
+        assertEquals("Should parse correctly", "10", result[2]);
+        assertEquals("Should parse correctly", "5", result[3]);
+        assertEquals("Should parse correctly", "5", result[4]);
     }
 
-    public void testDeleteNonExistingRectangle() {
-        quadtree.insert(10, 10, 20, 20);
-        quadtree.delete(50, 50); // Attempt to delete a non-existing rectangle
-        assertNotNull("Should still find the existing rectangle after non-existing delete", quadtree.root.find(15, 15));
+    public void testParseCommandFailure() {
+        String command = "insert 10 10 5;"; // Invalid number of parts
+        try {
+            Main.parse_InsertInput(command);
+            fail("Should throw an exception for invalid command");
+        } catch (Exception e) {
+            assertEquals("Cannot parse command: " + command, e.getMessage());
+        }
+    }
+    public void testMainClassExists() {
+        // Ensure the Main class can be instantiated
+        assertNotNull("Main class should exist", new Main());
     }
 
-    public void testUpdateRectangle() {
-        quadtree.insert(10, 10, 20, 20);
-        quadtree.update(10, 10, 30, 30, 10, 10); // Update the rectangle
-        assertNull("Should not find the old rectangle after update", quadtree.root.find(15, 15));
-        assertNotNull("Should find the new rectangle after update", quadtree.root.find(35, 35));
-    }
-
-    public void testUpdateRectangleNotFound() {
-        quadtree.update(100, 100, 30, 30, 10, 10); // Attempt to update a non-existing rectangle
-        assertTrue("Output should contain 'Rectangle not found at'", outContent.toString().contains("Rectangle not found at (100.0, 100.0)"));
-    }
-
-    public void testFindRectangle() {
-        quadtree.insert(10, 10, 20, 20);
-        quadtree.find(15, 15); // Find by center
-        assertTrue("Output should contain the rectangle details", outContent.toString().contains("Rectangle at (10.00, 10.00): 20.00x20.00"));
-    }
-
-    public void testFindNonExistingRectangle() {
-        quadtree.find(50, 50); // Find a non-existing rectangle
-        assertTrue("Output should indicate rectangle not found", outContent.toString().contains("Rectangle not found"));
-    }
-
-    public void testDump() {
-        quadtree.insert(10, 10, 20, 20);
-        quadtree.dump();
-        assertTrue("Output should contain the dumped details", outContent.toString().contains("Leaf Node -"));
-    }
-
-    public void testProcessCommands() throws IOException {
-        // Create a temporary command file
-        File tempFile = File.createTempFile("commands", ".cmmd");
-        FileWriter writer = new FileWriter(tempFile);
-        writer.write("insert 10 10 20 20\n");
-        writer.write("find 15 15\n");
-        writer.write("update 10 10 30 30 10 10\n");
-        writer.write("find 35 35\n");
-        writer.write("delete 15 15\n");
-        writer.write("find 15 15\n");
-        writer.write("dump\n");
-        writer.write("unknowncommand\n");
-        writer.close();
-
-        // Process the commands in the temporary file
-        quadtree.processCommands(tempFile.getAbsolutePath());
-
-        String output = outContent.toString();
-        assertTrue("Output should confirm rectangle insertion", output.contains("Rectangle at (10.00, 10.00): 20.00x20.00"));
-        assertTrue("Output should confirm rectangle update", output.contains("Rectangle at (30.00, 30.00): 10.00x10.00"));
-        assertTrue("Output should confirm rectangle deletion", output.contains("Rectangle not found"));
-        assertTrue("Output should show dumped details", output.contains("Leaf Node -"));
-        assertTrue("Output should indicate unknown command", output.contains("Unknown command: unknowncommand"));
-
-        // Cleanup the temporary file
-        tempFile.delete();
-    }
-
-    public void testInvalidCommandFormat() throws IOException {
-        // Create a temporary command file
-        File tempFile = File.createTempFile("commands", ".cmmd");
-        FileWriter writer = new FileWriter(tempFile);
-        writer.write("insert 10 10 20\n"); // Invalid insert command
-        writer.write("delete 10\n"); // Invalid delete command
-        writer.write("update 10 10\n"); // Invalid update command
-        writer.write("find 10 10\n"); // Valid find command
-        writer.write("dump\n");
-        writer.close();
-
-        // Process the commands in the temporary file
-        quadtree.processCommands(tempFile.getAbsolutePath());
-
-        String output = outContent.toString();
-        assertTrue("Output should indicate invalid insert command format", output.contains("Invalid insert command format."));
-        assertTrue("Output should indicate invalid delete command format", output.contains("Invalid delete command format."));
-        assertTrue("Output should indicate invalid update command format", output.contains("Invalid update command format."));
-        assertTrue("Output should confirm find command works", output.contains("Rectangle at (10.00, 10.00): 20.00x20.00"));
-        assertTrue("Output should show dumped details", output.contains("Leaf Node -"));
-
-        // Cleanup the temporary file
-        tempFile.delete();
-    }
-
-    public void testInvalidNumberFormat() throws IOException {
-        // Create a temporary command file
-        File tempFile = File.createTempFile("commands", ".cmmd");
-        FileWriter writer = new FileWriter(tempFile);
-        writer.write("insert 10 ten 20 20\n"); // Invalid number
-        writer.close();
-
-        // Process the commands in the temporary file
-        quadtree.processCommands(tempFile.getAbsolutePath());
-
-        String output = outContent.toString();
-        assertTrue("Output should indicate invalid number format", output.contains("Invalid number format for command: insert"));
-
-        // Cleanup the temporary file
-        tempFile.delete();
+    public void testMainMethodRuns() {
+        // Run the main method without any arguments
+        try {
+            String[] args = {};
+            Main.main(args);
+            // If no exceptions are thrown, the test passes
+        } catch (Exception e) {
+            fail("Main method should run without exceptions: " + e.getMessage());
+        }
     }
 }

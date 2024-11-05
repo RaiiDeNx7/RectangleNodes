@@ -1,57 +1,59 @@
 package org.sample.mavensample;
 
-/*
- * Description: The Node class is an abstract class that focusing on storing rectangles. It also provides the methods for 
- * inserting, printing, deleting, and finding Node details.
-*/
+/**
+ * The Node class serves as an abstract base class for handling nodes within a quadtree data structure. 
+ * It provides functionality for storing rectangles within a defined boundary, managing parent-child relationships, 
+ * and implementing essential methods for inserting, deleting, finding, and printing rectangles. Derived classes must provide specific implementations for these methods.
+ */
 abstract class Node {
     Rectangle boundary;
 
     /**
-     * Default Node Constructor
-     * Description: Constructor that initializes a Node with a specific boundary.
-     * 
-     * @param boundary (Rectangle): Defines the boundary of the node, typically representing the area of space this node covers.
+     * Description: Initializes a new instance of the Node class with a specified boundary defined by a rectangle. 
+     * @param boundary (Rectangle): The rectangle that defines the spatial boundary of this node. This boundary determines the area within which rectangles can be stored or manipulated.
      */
-    public Node(Rectangle boundary) {
+    Node(Rectangle boundary) {
         this.boundary = boundary;
     }
 
     /**
-     * Description: Abstract method intended to insert a rectangle r into the node. 
-     * The implementation should handle cases such as inserting rectangles into a child node if the node has already been split.
-     * 	
-     * @param r (Rectangle): The rectangle to be inserted within this node's boundary.
-    */
-    abstract void insert(Rectangle r);
+     * Description:  Inserts a rectangle into the node. 
+     * 
+     * @param r (Rectangle): The rectangle to be inserted.
+     * 
+     * @exception Throws an Exception if the insertion fails (e.g., if the rectangle is out of the node's boundary).
+     */
+    abstract void insert(Rectangle r) throws Exception;
     
     /**
-     * Description: Abstract method intended to print the contents or structure of the node. 
-     * depth can be used to determine the indentation level, reflecting the depth of the node in the quadtree structure.
-     * 	
-     * @param depth (integer): The depth level of the node, typically used for formatting the output.
-    */
+     * Description:  Inserts a rectangle into the node. 
+     * 
+     * @param x (float): The x-coordinate of the rectangle to be deleted.
+     * @param y (float): The y-coordinate of the rectangle to be deleted.
+     * 
+     * @exception Throws an Exception if no rectangle is found at the specified coordinates.
+     */
+    abstract void delete(float x, float y) throws Exception;
+    
+    /**
+     * Description: Finds and returns the rectangle located at the specified coordinates.. 
+     * 
+     * @param x (float): The x-coordinate where the rectangle is searched.
+     * @param y (float): The y-coordinate where the rectangle is searched.
+     * 
+     * @exception Throws an Exception if no rectangle is found at the specified coordinates.
+     * 
+     * @return Returns the Rectangle located at the specified coordinates, or throws an exception if not found.
+     */
+    abstract Rectangle find(float x, float y) throws Exception;
+    
+    /**
+     * Description: Prints the details of the node and its child nodes, formatted according to the specified depth.
+     * 
+     * @param depth (integer): The current depth in the quadtree structure, used for formatting output.
+     * 
+     * @exception This method does not throw exceptions.
+     * 
+     */
     abstract void print(int depth);
-    
-    /**
-     * Description: Abstract method intended to delete a rectangle located at the specified point (x,y). 
-     * The implementation should find and remove the rectangle from the node, potentially updating the structure of the 
-     * quadtree if a node becomes empty.
-     * 	
-     * @param x (double): The x-coordinate of the rectangle's reference point to delete.
-     * @param y (double): The y-coordinate of the rectangle's reference point to delete.
-     * 
-    */
-    abstract void delete(double x, double y);
-    
-    /**
-     * Description: Abstract method intended to locate and return the rectangle containing the point (x,y) 
-     * within the node's boundary.
-     * 	
-     * @param x (double): The x-coordinate of the point to find within the node's boundary.
-     * @param y (double): The y-coordinate of the point to find within the node's boundary.
-     * 
-     * @return (Rectangle): The rectangle that contains the point (x,y), or null if no such rectangle is found.
-    */
-    abstract Rectangle find(double x, double y);
 }

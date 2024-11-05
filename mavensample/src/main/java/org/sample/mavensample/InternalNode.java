@@ -1,143 +1,160 @@
 package org.sample.mavensample;
 
-
-
-//InternalNode class which extends Node
-//InternalNode class representing an internal node in the Quadtree
+/**
+ * The InternalNode class represents a node in a quadtree that can contain child nodes.
+ * It extends the Node class and provides methods for inserting, deleting, finding, 
+ * and printing rectangles, as well as updating rectangle dimensions and managing 
+ * child node relationships.
+ */
 class InternalNode extends Node {
-    Node[] children;
+    Node topLeft, topRight, bottomLeft, bottomRight;
 
     /**
-     * Default InternalNode Constructor
-     * Description: Constructor that initializes an InternalNode with a specific boundary and an array of four null child nodes.
+     * Description:  Initializes a new InternalNode with a specified boundary defined by its position (x, y) and its dimensions 
+     * (width, height). This constructor also calls the subdivide() method to create the four child nodes.
      * 
-     * @param x (double): The x-coordinate of the bottom-left corner
-     * @param y (double): The y-coordinate of the bottom-left corner
-     * @param width (double): The width of the rectangle
-     * @param height (double): The height of the rectangle
+     * @param x (double): The x-coordinate of the bottom-left corner of the node's boundary.
+     * @param y (double): The y-coordinate of the bottom-left corner of the node's boundary.
+     * @param width (double): The width of the node's boundary.
+     * @param height (double): The height of the node's boundary.
      */
     public InternalNode(double x, double y, double width, double height) {
-        super(new Rectangle(x, y, width, height));
-        children = new Node[4];
+        super(new Rectangle((float) x, (float) y, (float) width, (float) height));
+        subdivide();
     }
-
+    
     /**
-     * Description: Divides the current InternalNode into four LeafNode children, 
-     * each representing one quadrant (SW, NW, SE, NE) of the current node’s boundary. 
-     * Each child node is assigned half the width and height of the current node’s boundary.
+     * Description: Updates the dimensions of a rectangle located at the specified coordinates within the node. 
+     * If the rectangle is found, it modifies its length and width; otherwise, it throws an exception.
+     * 
+     * @param x (float): The x-coordinate of the rectangle's bottom-left corner to be updated.
+     * @param y (float): The y-coordinate of the rectangle's bottom-left corner to be updated.
+     * @param newLength (float): The new length for the rectangle.
+     * @param newWidth (float): The new width for the rectangle.
      */
-    public void subdivide() {
-        double x = boundary.x;
-        double y = boundary.y;
-        double w = boundary.width / 2;
-        double h = boundary.height / 2;
+    public void update(float x, float y, float newLength, float newWidth) throws Exception {
+        // Find the rectangle in the appropriate child node
+        Rectangle rectangleToUpdate = find(x, y); // Assuming `find` method locates the rectangle
 
-        // Create four children: SW, NW, SE, NE
-        children[0] = new LeafNode(x, y + h, w, h);       // SW (South-West)
-        children[1] = new LeafNode(x, y, w, h);           // NW (North-West)
-        children[2] = new LeafNode(x + w, y + h, w, h);   // SE (South-East)
-        children[3] = new LeafNode(x + w, y, w, h);       // NE (North-East)
+        // Update the rectangle's dimensions
+        if (rectangleToUpdate != null) {
+            rectangleToUpdate.length = newLength;
+            rectangleToUpdate.width = newWidth;
+        } else {
+            throw new Exception("Rectangle not found at specified location");
+        }
     }
 
     /**
-     * Description: Inserts a rectangle r into the appropriate child node. 
-     * If the InternalNode has no child nodes, it first calls subdivide() to create child nodes.
-     * The rectangle is only inserted into one child node, based on its location.
+     * Description: Divides the current internal node's boundary into four smaller leaf nodes (topLeft, topRight, bottomLeft, bottomRight) by calculating the midpoints of the boundary.
+     */
+    private void subdivide() {
+        float x = boundary.point.x, y = boundary.point.y, w = boundary.length / 2, h = boundary.width / 2;
+        topLeft = new LeafNode(x, y + h, w, h);
+        topRight = new LeafNode(x + w, y + h, w, h);
+        bottomLeft = new LeafNode(x, y, w, h);
+        bottomRight = new LeafNode(x + w, y, w, h);
+    }
+
+    /**
+     * Description: Returns the total number of rectangles stored in this internal node and its child nodes.
+     * 
+     * @return An integer representing the total count of rectangles in the internal node and its children.
+     */
+    public int getTotalRectangles() {
+        int total = 0;
+        total += ((LeafNode) topLeft).getTotalRectangles();
+        total += ((LeafNode) topRight).getTotalRectangles();
+        total += ((LeafNode) bottomLeft).getTotalRectangles();
+        total += ((LeafNode) bottomRight).getTotalRectangles();
+        return total;
+    }
+
+    /**
+     * Description: Returns an array of the child nodes (topLeft, topRight, bottomLeft, bottomRight) of this internal node.
+     * 
+     * @return An array of Node objects representing the children of this internal node.
+     */
+    // Add getChildren method
+    public Node[] getChildren() {
+        return new Node[]{topLeft, topRight, bottomLeft, bottomRight};
+    }
+
+    /**
+     * Description: Inserts a rectangle into one of the child nodes if it lies within the internal node's boundary. 
+     * If the rectangle's position is outside the boundary, it throws an exception.
      * 
      * @param r (Rectangle): The rectangle to be inserted.
+     * 
+     * @exception Throws an Exception if the rectangle is outside the internal node's boundary or if it cannot be inserted into any of the child nodes.
      */
     @Override
-    public void insert(Rectangle r) {
-        if (!boundary.contains(r.x, r.y)) return;
-
-        // Subdivide if children do not exist
-        if (children[0] == null) {
-            subdivide();
+    public void insert(Rectangle r) throws Exception {
+        // Check if the rectangle is within the boundary of this internal node
+        if (!boundary.contains(r.point.x, r.point.y)) {
+            throw new Exception("Rectangle is out of the internal node's boundary.");
         }
 
-        // Insert into the appropriate child node
-        for (Node child : children) {
-            if (child.boundary.contains(r.x, r.y)) {
-                child.insert(r);
-                return; // Insert into only one child
-            }
+        // Attempt to insert the rectangle into one of the child nodes
+        if (topLeft.boundary.contains(r.point.x, r.point.y)) {
+            topLeft.insert(r);
+        } else if (topRight.boundary.contains(r.point.x, r.point.y)) {
+            topRight.insert(r);
+        } else if (bottomLeft.boundary.contains(r.point.x, r.point.y)) {
+            bottomLeft.insert(r);
+        } else if (bottomRight.boundary.contains(r.point.x, r.point.y)) {
+            bottomRight.insert(r);
+        } else {
+            throw new Exception("You can not double insert at this position.");
         }
     }
 
     /**
-     * Description: Prints the structure of the InternalNode, showing the boundary of the node and each child node, 
-     * with the specified depth determining the level of indentation for output formatting.
+     * Description: Deletes a rectangle located at the specified coordinates from the appropriate child node.
      * 
-     * @param  depth (integer): The depth level of the node, used for indentation.
+     * @param x (float): The x-coordinate of the rectangle's bottom-left corner to be deleted.
+     * @param y (float): The y-coordinate of the rectangle's bottom-left corner to be deleted.
+     * 
+     * @exception Throws an Exception if no rectangle exists at the specified coordinates.
+     */
+    @Override
+    public void delete(float x, float y) throws Exception {
+        if (topLeft.boundary.contains(x, y)) topLeft.delete(x, y);
+        else if (topRight.boundary.contains(x, y)) topRight.delete(x, y);
+        else if (bottomLeft.boundary.contains(x, y)) bottomLeft.delete(x, y);
+        else if (bottomRight.boundary.contains(x, y)) bottomRight.delete(x, y);
+        else throw new Exception("Nothing to delete at " + x + ", " + y);
+    }
+
+    /**
+     * Description: Deletes a rectangle located at the specified coordinates from the appropriate child node.
+     * 
+     * @param x (float): The x-coordinate of the rectangle's bottom-left corner to find.
+     * @param y (float): The y-coordinate of the rectangle's bottom-left corner to find.
+     * 
+     * @exception Throws an Exception if no rectangle exists at the specified coordinates.
+     */
+    @Override
+    public Rectangle find(float x, float y) throws Exception {
+        if (topLeft.boundary.contains(x, y)) return topLeft.find(x, y);
+        else if (topRight.boundary.contains(x, y)) return topRight.find(x, y);
+        else if (bottomLeft.boundary.contains(x, y)) return bottomLeft.find(x, y);
+        else if (bottomRight.boundary.contains(x, y)) return bottomRight.find(x, y);
+        else throw new Exception("Nothing is at " + x + ", " + y);
+    }
+
+    /**
+     * Description: Prints the details of the internal node and its child nodes, formatted by the depth in the quadtree.
+     * 
+     * @param depth (integer): The depth level of the node in the quadtree, used for indentation in the output.
      */
     @Override
     public void print(int depth) {
         String indent = "    ".repeat(depth);
         System.out.println(indent + "Internal Node - " + boundary);
-
-        // Print the children in the correct order: SW, NW, SE, NE
-        if (children[0] != null) {  // Ensure children have been subdivided
-            children[0].print(depth + 1);  // SW
-            children[1].print(depth + 1);  // NW
-            children[2].print(depth + 1);  // SE
-            children[3].print(depth + 1);  // NE
-        }
-    }
-
-    /**
-     * Description: Deletes a rectangle located at the specified point (x,y) 
-     * by delegating the deletion to the appropriate child node. If no children exist, the method performs no action.
-     * 
-     * @param  x (double): The x-coordinate of the point for locating the rectangle to delete.
-     * @param  y (double): The y-coordinate of the point for locating the rectangle to delete.
-     */
-    @Override
-    public void delete(double x, double y) {
-        if (children[0] == null) return; // No children means nothing to delete
-
-        // Delegate delete to the appropriate child node
-        for (Node child : children) {
-            if (child.boundary.contains(x, y)) {
-                child.delete(x, y);
-                return; // Stop after deleting from the correct child
-            }
-        }
-    }
-
-    /**
-     * Description: Searches for a rectangle containing the point (x,y) 
-     * within the child nodes and returns it if found. If no children exist, the method returns null.
-     * 
-     * @param  x (double): The x-coordinate of the point to find within the node.
-     * @param  y (double): The y-coordinate of the point to find within the node.
-     * 
-     * @return Rectangle: Returns the rectangle containing the point (x,y) if found, or null otherwise.
-     */
-    @Override
-    public Rectangle find(double x, double y) {
-        if (children[0] == null) return null; // No children means no rectangles to find
-
-        // Search for the rectangle in the appropriate child node
-        for (Node child : children) {
-            if (child.boundary.contains(x, y)) {
-                return child.find(x, y); // Return the found rectangle
-            }
-        }
-        return null; // Rectangle not found
-    }
-    
-    /**
-     * Description: Checks if all child nodes of the InternalNode are empty. 
-     * It does so by iterating through each child and verifying if they are LeafNode instances without rectangles.
-     * 
-     * @return boolean: Returns true if all child nodes are empty, and false if any child node contains rectangles.
-     */
-    public boolean isEmpty() {
-        for (Node child : children) {
-            if (child instanceof LeafNode && !((LeafNode) child).rectangles.isEmpty()) {
-                return false; // Found a non-empty leaf node
-            }
-        }
-        return true; // All child nodes are empty
+        topLeft.print(depth + 1);
+        topRight.print(depth + 1);
+        bottomLeft.print(depth + 1);
+        bottomRight.print(depth + 1);
     }
 }

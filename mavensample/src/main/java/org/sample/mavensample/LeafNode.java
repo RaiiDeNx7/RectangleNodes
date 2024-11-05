@@ -1,48 +1,71 @@
 package org.sample.mavensample;
-import java.util.List;
+
 import java.util.ArrayList;
 
-//LeafNode class representing a leaf node in the Quadtree
+/*
+ * Description: The LeafNode class extends the abstract Node class and represents a leaf node in a quadtree structure. 
+ * It is responsible for storing rectangles and managing operations such as inserting, deleting, finding, and printing these rectangles. 
+ * This class maintains a list of rectangles that fall within the node's defined boundary.
+ */
 class LeafNode extends Node {
-    List<Rectangle> rectangles;
+    ArrayList<Rectangle> rectangles = new ArrayList<>();
 
     /**
-     * Default LeafNode Constructor
-     * Constructor that initializes a LeafNode with a specific boundary and an empty list of rectangles. 
-     * The boundary is defined as a rectangle positioned at (x,y) with the given width and height.
+     * Description: Initializes a new LeafNode with a specified boundary defined by its position (x, y) and its dimensions (width, height). 
      * 
-     * @param x (double): The x-coordinate of the bottom-left corner
-     * @param y (double): The y-coordinate of the bottom-left corner
-     * @param width (double): The width of the rectangle
-     * @param height (double): The height of the rectangle
+     * @param x (double): The x-coordinate of the bottom-left corner of the node's boundary.
+     * @param y (double): The y-coordinate of the bottom-left corner of the node's boundary.
+     * @param width (double): The width of the node's boundary.
+     * @param height (double): The height of the node's boundary.
      */
     public LeafNode(double x, double y, double width, double height) {
-        super(new Rectangle(x, y, width, height));
-        rectangles = new ArrayList<>();
+        super(new Rectangle((float) x, (float) y, (float) width, (float) height));
     }
 
     /**
-     * Description: Inserts a rectangle r into the LeafNode if r lies within the node’s boundary. 
-     * If the rectangle is already present, it will not be added again.
+     * Description: Inserts a rectangle into the leaf node if its bottom-left corner is contained within the node's boundary. 
      * 
-     * @param r (Rectangle): The rectangle to be inserted within this node’s boundary.
-    */
+     * @param r (Rectangle): The rectangle to be inserted into the leaf node.
+     */
     @Override
     public void insert(Rectangle r) {
-        if (!boundary.contains(r.x, r.y)) return;
-
-        // Insert rectangle if not already present
-        if (!rectangles.contains(r)) {
+        if (boundary.contains(r.point.x, r.point.y)) {
             rectangles.add(r);
         }
     }
 
     /**
-     * Description: Prints the structure of the LeafNode, showing the boundary of the node and any rectangles it contains. 
-     * The depth parameter determines the level of indentation for formatting the printed output.
+     * Description: Deletes a rectangle from the leaf node based on the coordinates of its bottom-left corner.
      * 
-     * @param depth (integer): The depth level of the node, which is used to indent the output accordingly.
-    */
+     * @param x (float): The x-coordinate of the rectangle's bottom-left corner to be deleted.
+     * @param y (float): The y-coordinate of the rectangle's bottom-left corner to be deleted.
+     */
+    @Override
+    public void delete(float x, float y) {
+        rectangles.removeIf(r -> r.point.x == x && r.point.y == y);
+    }
+
+    /**
+     * Description: Finds and returns the rectangle that matches the specified coordinates of its bottom-left corner.
+     * 
+     * @param x (float): The x-coordinate of the rectangle's bottom-left corner to find.
+     * @param y (float): The y-coordinate of the rectangle's bottom-left corner to find.
+     * 
+     * @return Returns the Rectangle object if found; otherwise, returns null.
+     */
+    @Override
+    public Rectangle find(float x, float y) {
+        return rectangles.stream()
+                .filter(r -> r.point.x == x && r.point.y == y)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Description: Prints the details of the leaf node and its stored rectangles, formatted by the depth in the quadtree.
+     * 
+     * @param depth (integer): The depth level of the node in the quadtree, used for indentation in the output.
+     */
     @Override
     public void print(int depth) {
         String indent = "    ".repeat(depth);
@@ -53,33 +76,11 @@ class LeafNode extends Node {
     }
 
     /**
-     * Description: Deletes any rectangle within the LeafNode that contains the specified point (x,y). 
-     * This uses a filter to remove all rectangles where (x,y) is inside the rectangle's boundary.
+     * Description: Returns the total number of rectangles currently stored in the leaf node.
      * 
-     * @param x (double): The x-coordinate of the point for locating the rectangle to delete.
-     * @param y (double): The y-coordinate of the point for locating the rectangle to delete.
-    */
-    @Override
-    public void delete(double x, double y) {
-        rectangles.removeIf(r -> r.contains(x, y));
-    }
-
-    /**
-     * Description: Searches for a rectangle within the LeafNode that contains the specified point (x,y) and 
-     * returns it if found.
-     * 
-     * @param x (double): The x-coordinate of the point to locate within the node.
-     * @param y (double): The y-coordinate of the point to locate within the node.
-     * 
-     * @return Rectangle: Returns the rectangle containing the point (x,y) if found, otherwise returns null.
-    */
-    @Override
-    public Rectangle find(double x, double y) {
-        for (Rectangle r : rectangles) {
-            if (r.contains(x, y)) {
-                return r;
-            }
-        }
-        return null;
+     * @return Returns an integer representing the total count of rectangles.
+     */
+    public int getTotalRectangles() {
+        return rectangles.size();
     }
 }
